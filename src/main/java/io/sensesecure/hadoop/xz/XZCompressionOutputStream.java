@@ -2,6 +2,7 @@ package io.sensesecure.hadoop.xz;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.Long;
 import org.apache.hadoop.io.compress.CompressionOutputStream;
 import org.tukaani.xz.LZMA2Options;
 import org.tukaani.xz.XZOutputStream;
@@ -27,6 +28,14 @@ public class XZCompressionOutputStream extends CompressionOutputStream {
         this.presetLevel = presetLevel;
         this.blockSize = blockSize;
         resetState();
+    }
+    
+    public XZCompressionOutputStream(OutputStream out, int presetLevel) throws IOException {
+        this(out, presetLevel, Long.MAX_VALUE);
+    }
+    
+    public XZCompressionOutputStream(OutputStream out) throws IOException {
+        this(out, LZMA2Options.PRESET_DEFAULT);
     }
 
     @Override
