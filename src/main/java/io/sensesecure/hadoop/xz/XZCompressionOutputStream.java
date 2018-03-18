@@ -26,16 +26,11 @@ public class XZCompressionOutputStream extends CompressionOutputStream {
         super(out);
         this.presetLevel = presetLevel;
         this.blockSize = blockSize;
-        resetStateNeeded = true;
+        resetState();
     }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        if (resetStateNeeded) {
-            resetStateNeeded = false;
-            xzOut = new XZOutputStream(out, new LZMA2Options(presetLevel));
-            blockOffset = 0;
-        }
         while (len > 0) {
             int chunk = (int) (blockOffset + len < blockSize ? len : blockSize - blockOffset);
             xzOut.write(b, off, chunk);
@@ -51,27 +46,18 @@ public class XZCompressionOutputStream extends CompressionOutputStream {
 
     @Override
     public void finish() throws IOException {
-        if (resetStateNeeded) {
-            resetStateNeeded = false;
-            xzOut = new XZOutputStream(out, new LZMA2Options(presetLevel));
-            blockOffset = 0;
-        }
         xzOut.finish();
-        resetStateNeeded = true;
+        resetState();
     }
 
     @Override
     public void resetState() throws IOException {
-        resetStateNeeded = true;
+        xzOut = new XZOutputStream(out, new LZMA2Options(presetLevel));
+        blockOffset = 0;
     }
 
     @Override
     public void write(int b) throws IOException {
-        if (resetStateNeeded) {
-            resetStateNeeded = false;
-            xzOut = new XZOutputStream(out, new LZMA2Options(presetLevel));
-            blockOffset = 0;
-        }
         xzOut.write(b);
         blockOffset++;
         if (blockOffset == blockSize) {
@@ -82,23 +68,12 @@ public class XZCompressionOutputStream extends CompressionOutputStream {
 
     @Override
     public void flush() throws IOException {
-        if (resetStateNeeded) {
-            resetStateNeeded = false;
-            xzOut = new XZOutputStream(out, new LZMA2Options(presetLevel));
-            blockOffset = 0;
-        }
         xzOut.flush();
     }
 
     @Override
     public void close() throws IOException {
-        if (resetStateNeeded) {
-            resetStateNeeded = false;
-            xzOut = new XZOutputStream(out, new LZMA2Options(presetLevel));
-            blockOffset = 0;
-        }
         xzOut.flush();
         xzOut.close();
-        resetStateNeeded = false;
     }
 }
